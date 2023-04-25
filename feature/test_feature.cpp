@@ -17,10 +17,12 @@ const char* keys =
     "{ input1 | box.png          | Path to input image 1. }"
     "{ input2 | box_in_scene.png | Path to input image 2. }";
 
+
 int main( int argc, char* argv[] )
 {
     CommandLineParser parser( argc, argv, keys );
 
+    // input path
     // read images
     // std::string left_img_path{samples::findFile( parser.get<String>("input1") )};
     // std::string right_img_path{samples::findFile( parser.get<String>("input2") )};
@@ -29,15 +31,16 @@ int main( int argc, char* argv[] )
     string left_img_path = img_root_path + "/" + "image_0/" + "000000.png";
     string right_img_path = img_root_path + "/" + "image_1/" + "000000.png";
 
-    string left_kps_path = "left_right_kps.txt"; 
-    string right_kps_path = "right_kps.txt"; 
+    // output path
+    // string left_kps_path  = "left_kps.txt"; 
+    // string right_kps_path = "right_kps.txt"; 
     string left_right_kps_path = "left_right_kps.txt"; 
 
     ofstream kps_f;
     kps_f.open(left_right_kps_path);
 
     Mat img1 = imread(left_img_path , IMREAD_GRAYSCALE );
-    Mat img2 = imread(right_img_path , IMREAD_GRAYSCALE );
+    Mat img2 = imread(right_img_path, IMREAD_GRAYSCALE );
     if ( img1.empty() || img2.empty() )
     {
         cout << "Could not open or find the image!\n" << endl;
@@ -56,7 +59,7 @@ int main( int argc, char* argv[] )
     //-- Step 2: Matching descriptor vectors with a FLANN based matcher
     // Since SURF is a floating-point descriptor NORM_L2 is used
     Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create(DescriptorMatcher::FLANNBASED);
-    std::vector< std::vector<DMatch> > knn_matches;
+    std::vector< std::vector<DMatch> > knn_matches;  // <queryIdx, <trainIdx, <DMatch>>>
     matcher->knnMatch( descriptors1, descriptors2, knn_matches, 2 );  // query, train 
     //-- Filter matches using the Lowe's ratio test
     const float ratio_thresh = 0.5f;
@@ -69,8 +72,8 @@ int main( int argc, char* argv[] )
 
     for (size_t i = 0; i < knn_matches.size(); i++)
     {
-        //knn_matches[i][0]: nearest idx
-        //knn_matches[i][1]: sub-nearest idx
+        //knn_matches[i][0]: nearest data pair
+        //knn_matches[i][1]: sub-nearest data pair
         if (knn_matches[i][0].distance < ratio_thresh * knn_matches[i][1].distance)
         {
             good_matches.push_back(knn_matches[i][0]);
@@ -78,10 +81,13 @@ int main( int argc, char* argv[] )
             queryIdx = knn_matches[i][0].queryIdx;  // right image kps index            
             cout << "match queryIdx: " << queryIdx << " i: " << i << endl;
             cout << "match trainIdx: " << trainIdx << ", position: " << keypoints1[queryIdx].pt << endl;  // i: queryIdx
-            left_img_points.push_back(Point2d(keypoints1[queryIdx].pt.x, keypoints1[queryIdx].pt.y));
-            right_img_points.push_back(Point2d(keypoints2[trainIdx].pt.x, keypoints2[trainIdx].pt.y));
+            
+            Point2d left_point(keypoints1[queryIdx].pt.x,  keypoints1[queryIdx].pt.y);
+            Point2d right_point(keypoints2[trainIdx].pt.x, keypoints2[trainIdx].pt.y);
+            left_img_points.push_back(left_point);
+            right_img_points.push_back(right_point);
 
-            kps_f << keypoints1[queryIdx].pt.x << " " << keypoints1[queryIdx].pt.y << " " << keypoints2[trainIdx].pt.x << " " << keypoints2[trainIdx].pt.y << "\n";
+            kps_f << left_point.x << " " << left_point.y << " " <<right_point.x << " " << right_point.y << "\n";        
         }
     }
 
@@ -89,7 +95,9 @@ int main( int argc, char* argv[] )
 
     //-- Draw matches
     Mat img_matches;
-    drawMatches( img1, keypoints1, img2, keypoints2, good_matches, img_matches, Scalar::all(-1),
+    drawMatches( img1, keypoints1, 
+                 img2, keypoints2, 
+                 good_matches, img_matches, Scalar::all(-1),
                  Scalar::all(-1), std::vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
 
     // img, CvPoint center, int radius, CvScalar color,
@@ -110,13 +118,8 @@ int main( int argc, char* argv[] )
     cv::imwrite("left_feature.png", img1);
     cv::imwrite("right_feature.png", img2);
 
+    // two view images witch match result 
+    cv::imwrite("img_matches.png", img_matches);
+
     return 0;
 }
-
-// #else
-// int main()
-// {
-//     std::cout << "This tutorial code needs the xfeatures2d contrib module to be run." << std::endl;
-//     return 0;
-// }
-// #endif

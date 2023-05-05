@@ -11,6 +11,8 @@ SET(EIGEN_INCLUDE_DIR "/usr/include/eigen3")
 include_directories(${EIGEN_INCLUDE_DIR}
                     ${OpenCV_INCLUDE_DIRS})
 
-add_executable(test_mat test_mat.cpp)
+add_executable(test_mat 
+                test_mat.cpp)
+
 target_link_libraries(test_mat 
                       ${OpenCV_LIBS})

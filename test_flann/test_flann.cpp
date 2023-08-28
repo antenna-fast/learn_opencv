@@ -8,7 +8,8 @@
 using namespace std;
 using namespace cv;
 
-int main(){
+int main()
+{
     cout << "test flann ..." << endl;
 
     const int width(3), height(500);

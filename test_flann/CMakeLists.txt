@@ -9,11 +9,13 @@ find_package(OpenCV 4 REQUIRED)
 
 SET(EIGEN_INCLUDE_DIR "/usr/include/eigen3")
 include_directories(${EIGEN_INCLUDE_DIR}
-                    ${OpenCV_INCLUDE_DIRS})
+                    ${OpenCV_INCLUDE_DIRS}
+                    )
 
 # file(GLOB src *.cpp)
 # add_executable(test_flann ${src})
 
 add_executable(test_flann test_flann.cpp)
 target_link_libraries(test_flann 
-                      ${OpenCV_LIBS})
+                      ${OpenCV_LIBS}
+                      )

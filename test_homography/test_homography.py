@@ -3,24 +3,6 @@ import numpy as np
 import cv2
 
 
-def undistort(u, v, k1, k2, k3, p1, p2, fx, fy, cx, cy):
-    x = (u-cx)/fx
-    y = (v-cy)/fy
-    x2 = x*x
-    y2 = y*y
-    xy = x*y
-    r2 = x2 + y2
-    x_radial = x * (1 + k1*r2 + k2*r2*r2 + k3*r2*r2*r2)
-    y_radial = y * (1 + k1*r2 + k2*r2*r2 + k3*r2*r2*r2)
-    x_tangential = 2*p1*xy + p2*(r2 + 2*x2)
-    y_tangential = 2*p2*xy + p1*(r2 + 2*y2)
-    xd = x_radial + x_tangential
-    yd = y_radial + y_tangential
-    u = xd*fx + cx 
-    v = yd*fy + cy
-    return u, v
-
-
 if __name__ == "__main__":
 
     # res = "disto"
